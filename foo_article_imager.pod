@@ -31,3 +31,9 @@
   Facade für beliebige der obigen Bibliotheken
 
 
+
+Links:
+
+Image Magick Installation
+http://globalmoxie.com/blog/imagemagick-install-osx.shtml
+

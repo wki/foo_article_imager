@@ -18,11 +18,12 @@ my $image_dir = dir($FindBin::Bin)->subdir('images')->resolve;
 my ($source_path, %thumbnail_path_for);
 
 my $converters = {
-  # Load   => \&slurp_image_file,
-    Epeg   => \&epeg_converter,
-    Imager => \&imager_converter,
-    Magick => \&magick_converter,
-    GD     => \&gd_converter,
+  # Load    => \&slurp_image_file,
+    Epeg    => \&epeg_converter,
+    Imager  => \&imager_converter,
+    Convert => \&convert_converter,
+    Magick  => \&magick_converter,
+    GD      => \&gd_converter,
 };
 
 # simple try:
@@ -52,7 +53,7 @@ sub prepare_paths {
     $source_path = $image_dir->file("${size}mpixel.jpg");
     %thumbnail_path_for = (
         map { ($_ => $image_dir->file("$_-$size.jpg")->stringify) }
-        qw(epeg imager magick gd)
+        qw(epeg imager magick convert gd)
     );
 }
 
@@ -81,6 +82,12 @@ sub imager_converter {
         file        => $thumbnail_path_for{imager}, 
         jpegquality => 100,
     );
+}
+
+sub convert_converter {
+    system 'convert', $source_path,
+        -resize => "${\THUMBNAIL_SIZE}x${\THUMBNAIL_SIZE}",
+        $thumbnail_path_for{convert};
 }
 
 sub magick_converter {
