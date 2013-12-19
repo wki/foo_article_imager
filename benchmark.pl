@@ -35,7 +35,7 @@ if (1) {
     say '16 mpixel:';
 
     prepare_paths(16);
-    cmpthese(10, $converters);
+    cmpthese(50, $converters);
 }
 
 if (1) {
