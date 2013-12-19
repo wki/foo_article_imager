@@ -1,0 +1,33 @@
+=encoding utf-8
+
+=head1 imager - universelle Bildverarbeitungs-Bibliothek
+
+=head2 Gegenüberstellung
+
+* Image::Magick
+  Abhängigkeit von ImageMagick C-libs
+  /usr/local/include, /usr/local/lib als Suchpfad :-(
+  --> patch auf /opt/local/...
+  /opt/local/include/ImageMagick-6/magick/MagickCore.h
+  --> Profile erhalten, JFIF (?) Daten bleiben erhalten
+  --> gute Qualität
+
+* GD : Erzeugen von Bildern
+  Abhängigkeit von gd2 C-libs
+  --> Profile--, JFIF--
+  --> mittelmäßige Qualität
+
+* Imager
+  Abhängigkeit von diversen kleinen Konvertierungs-Bibliotheken
+  --> Profile--, JFIF--
+  --> gute Qualität
+
+* Image::Epeg
+  C-Bibliothek mit dabei, am leichtetsten zu installieren
+  --> Profile--, JFIF--
+  --> relativ unscharf
+
+* Image::Thumbnail
+  Facade für beliebige der obigen Bibliotheken
+
+
