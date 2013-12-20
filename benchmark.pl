@@ -36,7 +36,7 @@ if (1) {
     say '16 mpixel:';
 
     prepare_paths(16);
-    cmpthese(50, $converters);
+    cmpthese 50, $converters;
 }
 
 if (1) {
@@ -44,7 +44,7 @@ if (1) {
     say '1 mpixel:';
     
     prepare_paths(1);
-    cmpthese(500, $converters);
+    cmpthese 500, $converters;
 }
 
 sub prepare_paths {

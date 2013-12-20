@@ -2,7 +2,105 @@
 
 =head1 imager - universelle Bildverarbeitungs-Bibliothek
 
-=head2 Gegenüberstellung
+=head2 Motivation
+
+Immer wieder ergibt sich die Problemstellung, Thumbnails zu erstellen, oder
+Bilder mit Wasserzeichen, einem Logo oder Text zu versehen. Greift man zum
+Klassiker ImageMagick? Oder gibt es Alternativen? Mein persönlicher Favorit
+ist L<Imager>, eine schnelle und universelle Bibliothek zur Bildbearbeitung,
+die auf diverse in C geschriebene Bibliotheken zurück greift.
+
+Um L<Imager> schmackhaft zu machen, möchte ich mit einem kurzen Benchmark
+beginnen. Eine JPEG-Datei aus einer 16 Megapixel Kamera soll zu einem
+Thumbnail mit einer Breite von 150 Pixeln konvertiert werden. Alle erzeugten
+JPEG Dateien wurden mit jeweils der maximal möglichen Qualität erzeugt, damit
+auch Unterschiede in puncto Qualität vergleichbar zu machen.
+
+Angetreten sind ImageMagick (einmal als Kommandozeile, einmal mittels
+L<Image::Magick>), L<GD>, L<Imager> und L<Image:Epeg>.
+
+              Rate Convert  Magick      GD  Imager    Epeg
+    Convert 1.14/s      --     -6%    -25%    -52%    -91%
+    Magick  1.22/s      7%      --    -19%    -48%    -90%
+    GD      1.52/s     32%     24%      --    -36%    -88%
+    Imager  2.37/s    107%     94%     57%      --    -81%
+    Epeg    12.3/s    974%    905%    711%    418%      --
+
+Schön, L<Imager> ist etwa doppelt so schnell wie ImageMagick, unabhängig
+davon, ob die Kommandozeilen- oder Perl-Version benutzt wird. Absoluter
+Ausreisser ist L<Image::Epeg>, das nochmal um Faktor 4 schneller ist. Leider
+kann letzteres Modul lediglich JPEG Dateien lesen und erstellen. Außerdem
+kennt diese Bibliothek keinerlei Bildmanipulations-Befehle, scheidet daher
+bei vielen Anforderungen aus.
+
+Dass ImageMagick langsamer ist, als Imager, ist ebenfalls erklärbar. Imager
+beherrscht keinerlei Farbmanagement, kann also nicht mit Farbprofilen umgehen
+und kann Metadaten aus Bildern weder lesen noch schreiben. ImageMagick kann
+neben vielen weiteren Funktionalitäten damit umgehen, was der Ausführungszeit
+leider nicht gerade entgegen kommt.
+
+=head2 Installation
+
+Etwas Vorsicht ist beim Installieren von Imager geboten, denn Imager sucht
+nach zahlreichen C-Bibliotheken und bindet alles verfügbare ein. Je nach
+Zustand des Systems, auf dem Imager compiliert wird, fällt der Funktionsumfang
+daher unter Umständen ganz anders aus. Fehlermeldungen gibt es nicht, denn
+dieses Verhalten ist zunächst so beabsichtigt.
+
+Wer Transparenz möchte kann sich zum Beispiel so behelfen, allerdings ist das
+natürlich kein Weg für automatisierbare Installationen.
+
+    $ cpanm --interactive Imager
+    ...
+    Libraries found:
+      FT2
+      JPEG
+      PNG
+      T1
+      TIFF
+    Libraries *not* found:
+      GIF
+      Win32
+    OK
+    Building and testing Imager-0.97 ... OK
+    Successfully reinstalled Imager-0.97
+    1 distribution installed
+
+In diesem Fall kann Imager auf einem *nix System nicht mit GIF Dateien
+umgehen, da die dafür benötigte Bibliothek nicht gefunden wurde. Die
+zusätzliche Distribution L<Imager::File::GIF> wird in diesem Fall einfach
+nicht mit installiert.
+
+Wenn ein Projekt bestimmte Dateiformate benötigt, kann die zusätzliche
+Installation der diversen zusätzlichen Distributionen L<Imager::File::*> oder
+L<Imager::Font::*> vornehmen. Laufen die Tests der Installation erfolgreich
+durch, ist alles im grünen Bereich. Fehlschlagende Tests lassen dann relativ
+schnell Rückschlüsse auf fehlende oder inkompatible C-Bibliotheken zu.
+
+    $ cpanm Imager::File::GIF
+    --> Working on Imager::File::GIF
+    Fetching .../authors/id/T/TO/TONYC/Imager-File-GIF-0.88.tar.gz ... OK
+    Configuring Imager-File-GIF-0.88 ... N/A
+    ! Configure failed for Imager-File-GIF-0.88.
+      See .cpanm/build.log for details.
+
+=head2 Funktionsumfang
+
+* Von Datei lesen / neu erzeugen
+
+* Vektor Zeichen-Funktionen
+  box, line, circle, ...
+
+* Text Rendering
+
+* Filter
+
+* Transformationen
+
+
+
+
+
 
 * Image::Magick
   Abhängigkeit von ImageMagick C-libs
@@ -37,3 +135,45 @@ Links:
 Image Magick Installation
 http://globalmoxie.com/blog/imagemagick-install-osx.shtml
 
+
+
+ADAMK/Imager-Search-1.01.tar.gz
+ADDI/Imager-Album-0.06.tar.gz
+ADDI/Imager-Plot-0.09.tar.gz
+BASHI/Imager-DTP-0.06.tar.gz
+CFRANKS/HTML-FormFu-Imager-1.00.tar.gz
+CORNELIUS/Imager-Montage-0.02.tar.gz
+COSIMO/Imager-SkinDetector-0.05.tar.gz
+DAMBAR/Catalyst-Plugin-Imager-0.01.tar.gz
+DARNOLD/Imager-Tiler-1.01.tar.gz
+EBRUNI/Image-Imager-Thumbnail-0.01.tar.gz
+GRAF/Imager-Simple-0.010003.tar.gz
+JOHND/ASP4x-Captcha-Imager-0.003.tar.gz
+KALEX/Apache2-Imager-Resize-0.16.tar.gz
+KAWAMURAY/Imager-Heatmap-0.03.tar.gz
+KRYDE/Image-Base-Imager-11.tar.gz
+KURIHARA/Imager-Filter-Sepia-0.02.tar.gz
+KURIHARA/Imager-QRCode-0.034.tar.gz
+MSCHILLI/Video-Capture-V4l-Imager-0.01.tar.gz
+MZSANFORD/Imager-TimelineDiagram-0.15.tar.gz
+RSAVAGE/jQuery-File-Upload-Imager-1.01.tgz
+TADZIK/Imager-GIF-0.002.tar.gz
+TEEJAY/Imager/Chart/Imager-Chart-Radial-0.1.tar.gz
+TKREMER/Template-Plugin-Imager-0.01.tar.gz
+TOKUHIROM/Imager-Filter-FishEye-0.04.tar.gz
+TOMITA/Imager-Filter-Bakumatsu-0.03.tar.gz
+TONYC/Imager-0.97.tar.gz
+TONYC/Imager-File-GIF-0.88.tar.gz
+TONYC/Imager-File-JPEG-0.88.tar.gz
+TONYC/Imager-File-PNG-0.89.tar.gz
+TONYC/Imager-File-TIFF-0.88.tar.gz
+TONYC/Imager-Font-FT2-0.92.tar.gz
+TONYC/Imager-Font-T1-1.022.tar.gz
+TONYC/Imager-Font-W32-0.88.tar.gz
+TONYC/Imager-Graph-0.10.tar.gz
+TONYC/Imager-Screenshot-0.013.tar.gz
+TYPESTER/Imager-Filter-RoundedCorner-0.02.tar.gz
+VVELOX/Imager-AverageGray-0.0.0.tar.gz
+WKI/Catalyst-Controller-Imager-0.05.tar.gz
+WROSS/Apache-Imager-Resize-0.11.tar.gz
+YAPPO/Imager-ExifOrientation-0.07.tar.gz
