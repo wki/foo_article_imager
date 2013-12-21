@@ -1,14 +1,15 @@
 =encoding utf-8
 
-=head1 imager - universelle Bildverarbeitungs-Bibliothek
+=head1 Imager - eine universelle Bildverarbeitungs-Bibliothek
 
 =head2 Motivation
 
-Immer wieder ergibt sich die Problemstellung, Thumbnails zu erstellen, oder
-Bilder mit Wasserzeichen, einem Logo oder Text zu versehen. Greift man zum
-Klassiker ImageMagick? Oder gibt es Alternativen? Mein persönlicher Favorit
-ist L<Imager>, eine schnelle und universelle Bibliothek zur Bildbearbeitung,
-die auf diverse in C geschriebene Bibliotheken zurück greift.
+Immer wieder ergibt sich die Problemstellung, Thumbnails zu erstellen, Bilder
+mit Wasserzeichen, einem Logo oder Text zu versehen oder gar Graphiken von
+Grund auf selbst zu erstellen. Greift man zum Klassiker ImageMagick? Oder gibt
+es Alternativen? Mein persönlicher Favorit ist L<Imager>, eine schnelle und
+universelle Bibliothek zur Bildbearbeitung, die auf diverse in C geschriebene
+Bibliotheken zurück greift.
 
 Um L<Imager> schmackhaft zu machen, möchte ich mit einem kurzen Benchmark
 beginnen. Eine JPEG-Datei aus einer 16 Megapixel Kamera soll zu einem
@@ -16,8 +17,8 @@ Thumbnail mit einer Breite von 150 Pixeln konvertiert werden. Alle erzeugten
 JPEG Dateien wurden mit jeweils der maximal möglichen Qualität erzeugt, damit
 auch Unterschiede in puncto Qualität vergleichbar zu machen.
 
-Angetreten sind ImageMagick (einmal als Kommandozeile, einmal mittels
-L<Image::Magick>), L<GD>, L<Imager> und L<Image:Epeg>.
+Angetreten sind ImageMagick als Kommandozeile (Convert), L<Image::Magick>,
+L<GD>, L<Imager> und L<Image:Epeg>.
 
               Rate Convert  Magick      GD  Imager    Epeg
     Convert 1.14/s      --     -6%    -25%    -52%    -91%
@@ -27,17 +28,19 @@ L<Image::Magick>), L<GD>, L<Imager> und L<Image:Epeg>.
     Epeg    12.3/s    974%    905%    711%    418%      --
 
 Schön, L<Imager> ist etwa doppelt so schnell wie ImageMagick, unabhängig
-davon, ob die Kommandozeilen- oder Perl-Version benutzt wird. Absoluter
-Ausreisser ist L<Image::Epeg>, das nochmal um Faktor 4 schneller ist. Leider
-kann letzteres Modul lediglich JPEG Dateien lesen und erstellen. Außerdem
-kennt diese Bibliothek keinerlei Bildmanipulations-Befehle, scheidet daher
-bei vielen Anforderungen aus.
+davon, ob die Kommandozeilen- oder Perl-Version von ImageMagick benutzt wird.
+Absoluter Gewinner ist L<Image::Epeg>, das nochmal um Faktor 4 schneller ist.
+Leider kann letzteres Modul lediglich JPEG Dateien lesen und erzeugen.
+Außerdem kennt diese Bibliothek keinerlei Bildmanipulations-Befehle, scheidet
+daher bei vielen Anforderungen aus. Die Qualität der erzeugten Bilder ist
+ebenfalls die schlechteste der 4 Test-Kandidaten.
 
-Dass ImageMagick langsamer ist, als Imager, ist ebenfalls erklärbar. Imager
+Dass ImageMagick langsamer ist als Imager, ist ebenfalls erklärbar. Imager
 beherrscht keinerlei Farbmanagement, kann also nicht mit Farbprofilen umgehen
 und kann Metadaten aus Bildern weder lesen noch schreiben. ImageMagick kann
 neben vielen weiteren Funktionalitäten damit umgehen, was der Ausführungszeit
-leider nicht gerade entgegen kommt.
+leider nicht gerade entgegen kommt. Auch entschädigt die längere Laufzeit
+mit geringfügig schärferen Ergebnissen.
 
 =head2 Installation
 
@@ -45,9 +48,9 @@ Etwas Vorsicht ist beim Installieren von Imager geboten, denn Imager sucht
 nach zahlreichen C-Bibliotheken und bindet alles verfügbare ein. Je nach
 Zustand des Systems, auf dem Imager compiliert wird, fällt der Funktionsumfang
 daher unter Umständen ganz anders aus. Fehlermeldungen gibt es nicht, denn
-dieses Verhalten ist zunächst so beabsichtigt.
+dieses Verhalten ist zunächst so beabsichtigt, um möglichst flexibel zu sein.
 
-Wer Transparenz möchte kann sich zum Beispiel so behelfen, allerdings ist das
+Wer Transparenz möchte, kann sich zum Beispiel so behelfen, allerdings ist das
 natürlich kein Weg für automatisierbare Installationen.
 
     $ cpanm --interactive Imager
@@ -86,21 +89,140 @@ schnell Rückschlüsse auf fehlende oder inkompatible C-Bibliotheken zu.
 
 =head2 Funktionsumfang
 
-* Von Datei lesen / neu erzeugen
+Um einen Teil der Möglichkeiten von Imager kennen zu lernen, soll aus einem
+vorgegebenen Bild eine neue Graphik erzeugt werden, die einen Abspiel-Button
+in der Mitte sowie ein Logo in einer Ecke besitzt. Um erweiterbar zu sein,
+erzeugen wir eine einfache Klasse (Button), in der die verwendeten Operationen
+gekapselt sind. Die Erzeugung unserer Graphik sieht dann so aus:
 
-* Vektor Zeichen-Funktionen
-  box, line, circle, ...
+    Button->new
+          ->load($source_file)
+          ->scale(THUMBNAIL_WIDTH, THUMBNAIL_HEIGHT)
+          ->add_play_icon(PLAY_ICON_RADIUS)
+          ->add_logo($logo_file)
+          ->save($button_file);
 
-* Text Rendering
+Die einzelnen Operationen sind relativ schnell abgehandelt und hoffentlich
+weitgehend selbstsprechend. Die von uns eingesetzte Klasse besitzt lediglich
+ein Attribut (image), in dem das Imager-Bild im jeweils aktuellen Zustand
+gehalten wird.
 
-* Filter
+    package Button;
+    use Moose;
+    use Imager;
+    
+    has image => (
+        is  => 'rw',
+        isa => 'Imager',
+    );
 
-* Transformationen
+=over
 
+=item Bild Datei lesen
 
+    sub load {
+        my ($self, $file) = @_;
+    
+        $self->image(Imager->new(file => $file));
+    
+        return $self;
+    }
+    
+=item Skalieren und in korrekte Größe bringen
 
+Die Skalierung erfordert zwei Arbeitsschritte, denn die reine Skalierung
+behält das Seitenverhältnis des Bildes bei. Wir müssen also das skalierte
+Bild noch zurecht schreiden.
 
+    sub scale {
+        my ($self, $width, $height) = @_;
+    
+        # skalieren.
+        my $image = $self->image->scale(
+            xpixels => $width,
+            ypixels => $height,
+            type    => 'max',
+            qtype   => 'mixing',
+        );
+    
+        # in 16:9 Format bringen
+        my $left = int(($image->getwidth  - $width)  / 2);
+        my $top  = int(($image->getheight - $height) / 2);
+        $image = $image->crop(
+            left   => $left,
+            right  => $left + $width,
+            top    => $top,
+            bottom => $top + $height,
+        );
+    
+        $self->image($image);
+    
+        return $self;
+    }
 
+=item Zeichnen eines einfachen Abspiel-Pfeils
+
+    sub add_play_icon {
+        my ($self, $radius) = @_;
+    
+        my $center_x = int($self->image->getwidth  / 2);
+        my $center_y = int($self->image->getheight / 2);
+    
+        $self->image->circle(
+            color => '#000000', # schwarz
+            r     => $radius + 2,
+            x     => $center_x,
+            y     => $center_y,
+        );
+    
+        $self->image->circle(
+            color => '#ffffff', # weiss
+            r     => $radius,
+            x     => $center_x,
+            y     => $center_y,
+        );
+    
+        my $delta = ($radius - 2) / sqrt(2);
+        $self->image->polygon(
+            color => '#000000',
+            points => [
+                [ $center_x - $delta,      $center_y - $delta],
+                [ $center_x + $radius - 2, $center_y ],
+                [ $center_x - $delta,      $center_y + $delta],
+            ],
+        );
+    
+        return $self;
+    }
+
+=item Hinzufügen eines Logos aus anderer Bild-Datei
+    
+    sub add_logo {
+        my ($self, $file) = @_;
+    
+        my $logo = Imager->new(file => $file);
+        $self->image->paste(
+            left => $self->image->getwidth  - $logo->getwidth  - 1,
+            top  => $self->image->getheight - $logo->getheight - 1,
+            src  => $logo,
+        );
+    
+        return $self;
+    }
+
+=item speichern des erzeugten Bildes
+
+    sub save {
+        my ($self, $file) = @_;
+    
+        $self->image->write(
+            file => $file,
+        );
+    
+        return $self;
+    }
+    
+=back
 
 * Image::Magick
   Abhängigkeit von ImageMagick C-libs
