@@ -18,7 +18,7 @@ JPEG Dateien wurden mit jeweils der maximal möglichen Qualität erzeugt, damit
 auch Unterschiede in puncto Qualität vergleichbar zu machen.
 
 Angetreten sind ImageMagick als Kommandozeile (Convert), L<Image::Magick>,
-L<GD>, L<Imager> und L<Image:Epeg>.
+L<GD>, L<Imager> und L<Image::Epeg>.
 
               Rate Convert  Magick      GD  Imager    Epeg
     Convert 1.14/s      --     -6%    -25%    -52%    -91%
@@ -137,7 +137,7 @@ Bild noch zurecht schreiden.
     sub scale {
         my ($self, $width, $height) = @_;
     
-        # skalieren.
+        # skalieren -- erzeugtes Bild ist zu groß
         my $image = $self->image->scale(
             xpixels => $width,
             ypixels => $height,
@@ -145,7 +145,7 @@ Bild noch zurecht schreiden.
             qtype   => 'mixing',
         );
     
-        # in 16:9 Format bringen
+        # in 16:9 Format zuschneiden
         my $left = int(($image->getwidth  - $width)  / 2);
         my $top  = int(($image->getheight - $height) / 2);
         $image = $image->crop(
@@ -168,13 +168,15 @@ Bild noch zurecht schreiden.
         my $center_x = int($self->image->getwidth  / 2);
         my $center_y = int($self->image->getheight / 2);
     
+        # große schwaze Fläche
         $self->image->circle(
-            color => '#000000', # schwarz
+            color => '#000000',
             r     => $radius + 2,
             x     => $center_x,
             y     => $center_y,
         );
     
+        # etwas kleinere weisse Fläche
         $self->image->circle(
             color => '#ffffff', # weiss
             r     => $radius,
@@ -182,6 +184,7 @@ Bild noch zurecht schreiden.
             y     => $center_y,
         );
     
+        # schwarzes Dreieck
         my $delta = ($radius - 2) / sqrt(2);
         $self->image->polygon(
             color => '#000000',
