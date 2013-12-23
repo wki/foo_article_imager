@@ -91,23 +91,25 @@ schnell Rückschlüsse auf fehlende oder inkompatible C-Bibliotheken zu.
 
 Um einen Teil der Möglichkeiten von Imager kennen zu lernen, soll aus einem
 vorgegebenen Bild eine neue Graphik erzeugt werden, die einen Abspiel-Button
-in der Mitte sowie ein Logo in einer Ecke besitzt. Um erweiterbar zu sein,
-erzeugen wir eine einfache Klasse (Button), in der die verwendeten Operationen
-gekapselt sind. Die Erzeugung unserer Graphik sieht dann so aus:
+in der Mitte sowie ein Logo in einer Ecke besitzt. Um erweiterbar zu sein und
+den Programmcode leichter nachvollziehbar zu halten, erzeugen wir eine
+einfache Klasse (Thumbnail), in der die verwendeten Operationen sowie ein
+Imager-Objekt gekapselt sind. Die Erzeugung unserer Graphik sieht dann so aus:
 
-    Button->new
-          ->load($source_file)
-          ->scale(THUMBNAIL_WIDTH, THUMBNAIL_HEIGHT)
-          ->add_play_icon(PLAY_ICON_RADIUS)
-          ->add_logo($logo_file)
-          ->save($button_file);
+    Thumbnail
+        ->load($source_file)
+        ->scale(THUMBNAIL_WIDTH, THUMBNAIL_HEIGHT)
+        ->add_play_icon(PLAY_ICON_RADIUS)
+        ->add_logo($logo_file)
+        ->add_copyright
+        ->save($button_file);
 
 Die einzelnen Operationen sind relativ schnell abgehandelt und hoffentlich
 weitgehend selbstsprechend. Die von uns eingesetzte Klasse besitzt lediglich
 ein Attribut (image), in dem das Imager-Bild im jeweils aktuellen Zustand
 gehalten wird.
 
-    package Button;
+    package Thumbnail;
     use Moose;
     use Imager;
     
@@ -121,8 +123,10 @@ gehalten wird.
 =item Bild Datei lesen
 
     sub load {
-        my ($self, $file) = @_;
-    
+        my ($class, $file) = @_;
+        
+        my $self = $class->new;
+
         $self->image(Imager->new(file => $file));
     
         return $self;
@@ -132,7 +136,7 @@ gehalten wird.
 
 Die Skalierung erfordert zwei Arbeitsschritte, denn die reine Skalierung
 behält das Seitenverhältnis des Bildes bei. Wir müssen also das skalierte
-Bild noch zurecht schreiden.
+Bild noch zuschneiden.
 
     sub scale {
         my ($self, $width, $height) = @_;
@@ -145,7 +149,7 @@ Bild noch zurecht schreiden.
             qtype   => 'mixing',
         );
     
-        # in 16:9 Format zuschneiden
+        # zuschneiden -- Mitte ist Fixpunkt
         my $left = int(($image->getwidth  - $width)  / 2);
         my $top  = int(($image->getheight - $height) / 2);
         $image = $image->crop(
@@ -174,25 +178,28 @@ Bild noch zurecht schreiden.
             r     => $radius + 2,
             x     => $center_x,
             y     => $center_y,
+            aa    => 1,
         );
     
-        # etwas kleinere weisse Fläche
+        # etwas kleinere weiße Fläche
         $self->image->circle(
             color => '#ffffff', # weiss
             r     => $radius,
             x     => $center_x,
             y     => $center_y,
+            aa    => 1,
         );
     
         # schwarzes Dreieck
         my $delta = ($radius - 2) / sqrt(2);
         $self->image->polygon(
-            color => '#000000',
+            color  => '#000000',
             points => [
                 [ $center_x - $delta,      $center_y - $delta],
                 [ $center_x + $radius - 2, $center_y ],
                 [ $center_x - $delta,      $center_y + $delta],
             ],
+            aa     => 1,
         );
     
         return $self;
@@ -213,6 +220,29 @@ Bild noch zurecht schreiden.
         return $self;
     }
 
+=item Text zeichnen
+
+    sub add_copyright {
+        my $self = shift;
+        
+        my $text = 'WKI';
+        my $font = Imager::Font->new(
+            file => "$FindBin::Bin/Twister.ttf",
+        );
+        
+        $self->image->string(
+            string => $text,
+            x      => 5,
+            y      => $self->image->getheight - 10,
+            color  => '#ffffff',
+            font   => $font,
+            size   => 20,
+            aa     => 1,
+        );
+        
+        return $self;
+    }
+
 =item speichern des erzeugten Bildes
 
     sub save {
@@ -226,6 +256,8 @@ Bild noch zurecht schreiden.
     }
     
 =back
+
+
 
 * Image::Magick
   Abhängigkeit von ImageMagick C-libs
@@ -253,6 +285,65 @@ Bild noch zurecht schreiden.
 * Image::Thumbnail
   Facade für beliebige der obigen Bibliotheken
 
+=head2 Zugabe
+
+Imager kann noch viel mehr. Dank der brillianten Dokumentation sind die
+notwendigen Methoden und deren Argumente auch schnell herauszufinden. Nicht
+unerwähnt bleiben sollten die Funktionalitäten dennoch:
+
+=over
+
+=item Füll-Funktionen
+
+gezeichnete Flächen lassen sich nicht nur mit soliden Farben füllen, sondern
+auch mit Mustern, Scraffuren, Verläufen oder sich wiederholenden Bildern.
+
+=item Transformationen
+
+neben der gezeigten Skalierung stehen auch Streckungen, Rotationen und
+Spiegelungen zur Verfügung.
+
+=item Farb-Manipulationen
+
+Diverse Operationen bieten Farb-Operationen, Helligkeits- und
+Kontrastveränderungen sowie diverse arithmetische Veränderungen beim
+Zusammenfügen verschiedener Einzelteile.
+
+=item Transparenzen
+
+Imager kann wahlweise einen Alpha-Kanel mitführen, der beim Erzeugen von zum
+Beispiel PNG- oder GIF-Bildern transparente Bilder produzieren kann.
+
+=item Anti-Aliasing
+
+fast jeder Zeichenbefehl beherrscht die Option C<aa>, mit der die Kanten der
+gezeichten Objekte geglättet werden, was optisch ansprechendere Ergebnisse
+zur Folge hat.
+
+=item Filter
+
+Fast schon Photoshop-Niveau hat die Liste der zur Verfügung stehenden Filter
+Funktionen. Damit stehen eine ganze Reihe von Verwandlungs- und
+Verfremdungs-Befehle zur Auswahl.
+
+=back
+
+
+=head2 Letzte Zugabe
+
+zahlreiche CPAN Autoren haben Imager ebenfalls in ihr Herz geschlossen und
+diverse Distributionen auf Imager aufgebaut.
+
+=over
+
+=item Imager::Montage
+
+Erlaubt die Erzeugung einer Komposition aus 
+
+=item Imager::Graph
+
+
+=back
 
 
 Links:

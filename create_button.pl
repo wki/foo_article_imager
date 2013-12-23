@@ -5,7 +5,7 @@ use FindBin;
 use Path::Class;
 
 {
-    package Button;
+    package Thumbnail;
     use Moose;
     use Imager;
 
@@ -15,8 +15,10 @@ use Path::Class;
     );
 
     sub load {
-        my ($self, $file) = @_;
+        my ($class, $file) = @_;
 
+        my $self = $class->new;
+        
         $self->image(Imager->new(file => $file));
 
         return $self;
@@ -59,6 +61,7 @@ use Path::Class;
             r     => $radius + 2,
             x     => $center_x,
             y     => $center_y,
+            aa    => 1,
         );
 
         $self->image->circle(
@@ -66,16 +69,18 @@ use Path::Class;
             r     => $radius,
             x     => $center_x,
             y     => $center_y,
+            aa    => 1,
         );
 
         my $delta = ($radius - 2) / sqrt(2);
         $self->image->polygon(
-            color => '#000000',
+            color  => '#000000',
             points => [
                 [ $center_x - $delta,      $center_y - $delta],
                 [ $center_x + $radius - 2, $center_y ],
                 [ $center_x - $delta,      $center_y + $delta],
             ],
+            aa     => 1,
         );
 
         return $self;
@@ -91,6 +96,27 @@ use Path::Class;
             src  => $logo,
         );
 
+        return $self;
+    }
+    
+    sub add_copyright {
+        my $self = shift;
+        
+        my $text = 'WKI';
+        my $font = Imager::Font->new(
+            file => "$FindBin::Bin/Twister.ttf",
+        );
+        
+        $self->image->string(
+            string => $text,
+            x      => 5,
+            y      => $self->image->getheight - 10,
+            color  => '#ffffff',
+            font   => $font,
+            size   => 20,
+            aa     => 1,
+        );
+        
         return $self;
     }
 
@@ -117,9 +143,10 @@ my $source_file = $image_dir->file(SOURCE_IMAGE);
 my $logo_file   = $image_dir->file(LOGO_IMAGE);
 my $button_file = $image_dir->file(BUTTON_IMAGE);
 
-Button->new
-      ->load($source_file)
-      ->scale(THUMBNAIL_WIDTH, THUMBNAIL_HEIGHT)
-      ->add_play_icon(PLAY_ICON_RADIUS)
-      ->add_logo($logo_file)
-      ->save($button_file);
+Thumbnail
+    ->load($source_file)
+    ->scale(THUMBNAIL_WIDTH, THUMBNAIL_HEIGHT)
+    ->add_play_icon(PLAY_ICON_RADIUS)
+    ->add_logo($logo_file)
+    ->add_copyright
+    ->save($button_file);
