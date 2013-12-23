@@ -98,7 +98,7 @@ use Path::Class;
 
         return $self;
     }
-    
+
     sub add_copyright {
         my $self = shift;
         
@@ -136,12 +136,12 @@ use constant THUMBNAIL_HEIGHT => 90;
 use constant PLAY_ICON_RADIUS => 20;
 use constant SOURCE_IMAGE     => '16mpixel.jpg';
 use constant LOGO_IMAGE       => 'logo.png';
-use constant BUTTON_IMAGE     => 'button.png';
+use constant THUMBNAIL_IMAGE  => 'button.png';
 
-my $image_dir   = dir($FindBin::Bin)->subdir('images')->resolve;
-my $source_file = $image_dir->file(SOURCE_IMAGE);
-my $logo_file   = $image_dir->file(LOGO_IMAGE);
-my $button_file = $image_dir->file(BUTTON_IMAGE);
+my $image_dir      = dir($FindBin::Bin)->subdir('images')->resolve;
+my $source_file    = $image_dir->file(SOURCE_IMAGE);
+my $logo_file      = $image_dir->file(LOGO_IMAGE);
+my $thumbnail_file = $image_dir->file(THUMBNAIL_WIDTH);
 
 Thumbnail
     ->load($source_file)
@@ -149,4 +149,4 @@ Thumbnail
     ->add_play_icon(PLAY_ICON_RADIUS)
     ->add_logo($logo_file)
     ->add_copyright
-    ->save($button_file);
+    ->save($thumbnail_file);

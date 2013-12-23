@@ -38,7 +38,7 @@ ebenfalls die schlechteste der 4 Test-Kandidaten.
 Dass ImageMagick langsamer ist als Imager, ist ebenfalls erklärbar. Imager
 beherrscht keinerlei Farbmanagement, kann also nicht mit Farbprofilen umgehen
 und kann Metadaten aus Bildern weder lesen noch schreiben. ImageMagick kann
-neben vielen weiteren Funktionalitäten damit umgehen, was der Ausführungszeit
+neben vielen weiteren Dingen damit umgehen, was der Ausführungszeit
 leider nicht gerade entgegen kommt. Auch entschädigt die längere Laufzeit
 mit geringfügig schärferen Ergebnissen.
 
@@ -89,12 +89,14 @@ schnell Rückschlüsse auf fehlende oder inkompatible C-Bibliotheken zu.
 
 =head2 Funktionsumfang
 
-Um einen Teil der Möglichkeiten von Imager kennen zu lernen, soll aus einem
-vorgegebenen Bild eine neue Graphik erzeugt werden, die einen Abspiel-Button
-in der Mitte sowie ein Logo in einer Ecke besitzt. Um erweiterbar zu sein und
-den Programmcode leichter nachvollziehbar zu halten, erzeugen wir eine
-einfache Klasse (Thumbnail), in der die verwendeten Operationen sowie ein
-Imager-Objekt gekapselt sind. Die Erzeugung unserer Graphik sieht dann so aus:
+Um einen Teil der Möglichkeiten von Imager kennen zu lernen, schauen wir uns
+ein Beispiel-Programm an. Aus einem vorgegebenen Bild wird eine neue Graphik
+erzeugt, die ein Abspiel-Symbol in der Mitte sowie ein Logo in einer Ecke
+besitzt. Eine Copyright Information in einer weiteren Ecke wird ebenfalls mit
+gezeichnet. Um erweiterbar zu sein und den Programmcode leichter
+nachvollziehbar zu halten, erzeugen wir eine einfache Klasse (Thumbnail), in
+der die verwendeten Operationen sowie ein Imager-Objekt gekapselt sind. Die
+Erzeugung unserer Graphik sieht dann so aus:
 
     Thumbnail
         ->load($source_file)
@@ -102,7 +104,7 @@ Imager-Objekt gekapselt sind. Die Erzeugung unserer Graphik sieht dann so aus:
         ->add_play_icon(PLAY_ICON_RADIUS)
         ->add_logo($logo_file)
         ->add_copyright
-        ->save($button_file);
+        ->save($thumbnail_file);
 
 Die einzelnen Operationen sind relativ schnell abgehandelt und hoffentlich
 weitgehend selbstsprechend. Die von uns eingesetzte Klasse besitzt lediglich
@@ -172,7 +174,7 @@ Bild noch zuschneiden.
         my $center_x = int($self->image->getwidth  / 2);
         my $center_y = int($self->image->getheight / 2);
     
-        # große schwaze Fläche
+        # große schwarze Fläche
         $self->image->circle(
             color => '#000000',
             r     => $radius + 2,
@@ -183,7 +185,7 @@ Bild noch zuschneiden.
     
         # etwas kleinere weiße Fläche
         $self->image->circle(
-            color => '#ffffff', # weiss
+            color => '#ffffff',
             r     => $radius,
             x     => $center_x,
             y     => $center_y,
@@ -257,46 +259,18 @@ Bild noch zuschneiden.
     
 =back
 
-
-
-* Image::Magick
-  Abhängigkeit von ImageMagick C-libs
-  /usr/local/include, /usr/local/lib als Suchpfad :-(
-  --> patch auf /opt/local/...
-  /opt/local/include/ImageMagick-6/magick/MagickCore.h
-  --> Profile erhalten, JFIF (?) Daten bleiben erhalten
-  --> gute Qualität
-
-* GD : Erzeugen von Bildern
-  Abhängigkeit von gd2 C-libs
-  --> Profile--, JFIF--
-  --> mittelmäßige Qualität
-
-* Imager
-  Abhängigkeit von diversen kleinen Konvertierungs-Bibliotheken
-  --> Profile--, JFIF--
-  --> gute Qualität
-
-* Image::Epeg
-  C-Bibliothek mit dabei, am leichtetsten zu installieren
-  --> Profile--, JFIF--
-  --> relativ unscharf
-
-* Image::Thumbnail
-  Facade für beliebige der obigen Bibliotheken
-
 =head2 Zugabe
 
 Imager kann noch viel mehr. Dank der brillianten Dokumentation sind die
 notwendigen Methoden und deren Argumente auch schnell herauszufinden. Nicht
-unerwähnt bleiben sollten die Funktionalitäten dennoch:
+unerwähnt bleiben sollten die Eigenschaften dennoch:
 
 =over
 
 =item Füll-Funktionen
 
 gezeichnete Flächen lassen sich nicht nur mit soliden Farben füllen, sondern
-auch mit Mustern, Scraffuren, Verläufen oder sich wiederholenden Bildern.
+auch mit Mustern, Schraffuren, Verläufen oder gekachelten Bildern.
 
 =item Transformationen
 
@@ -317,7 +291,7 @@ Beispiel PNG- oder GIF-Bildern transparente Bilder produzieren kann.
 =item Anti-Aliasing
 
 fast jeder Zeichenbefehl beherrscht die Option C<aa>, mit der die Kanten der
-gezeichten Objekte geglättet werden, was optisch ansprechendere Ergebnisse
+gezeichneten Objekte geglättet werden, was optisch ansprechendere Ergebnisse
 zur Folge hat.
 
 =item Filter
@@ -328,68 +302,42 @@ Verfremdungs-Befehle zur Auswahl.
 
 =back
 
-
 =head2 Letzte Zugabe
 
 zahlreiche CPAN Autoren haben Imager ebenfalls in ihr Herz geschlossen und
-diverse Distributionen auf Imager aufgebaut.
+diverse Distributionen auf Imager aufgebaut. Hier eine kleine Auswahl:
 
 =over
 
 =item Imager::Montage
 
-Erlaubt die Erzeugung einer Komposition aus 
+Erlaubt die Erzeugung einer Komposition aus einer Menge von Einzelbildern.
 
 =item Imager::Graph
 
+Erzeugt Balken-, Torten- und Liniengraphiken mit sehr viel
+Variations-Möglichkeiten.
+
+=item Imager::Simple
+
+Wie der Name vermuten lässt, erleichtert dieses Modul einige Arbeiten rund um
+Imager.
+
+=item Imager::Heatmap
+
+Erzeugt Heatmaps aus statistischen Daten.
+
+=item Imager::QRCode
+
+Erleichtert die Erzeugung von QR Codes.
 
 =back
 
+=head2 Fazit
 
-Links:
-
-Image Magick Installation
-http://globalmoxie.com/blog/imagemagick-install-osx.shtml
-
-
-
-ADAMK/Imager-Search-1.01.tar.gz
-ADDI/Imager-Album-0.06.tar.gz
-ADDI/Imager-Plot-0.09.tar.gz
-BASHI/Imager-DTP-0.06.tar.gz
-CFRANKS/HTML-FormFu-Imager-1.00.tar.gz
-CORNELIUS/Imager-Montage-0.02.tar.gz
-COSIMO/Imager-SkinDetector-0.05.tar.gz
-DAMBAR/Catalyst-Plugin-Imager-0.01.tar.gz
-DARNOLD/Imager-Tiler-1.01.tar.gz
-EBRUNI/Image-Imager-Thumbnail-0.01.tar.gz
-GRAF/Imager-Simple-0.010003.tar.gz
-JOHND/ASP4x-Captcha-Imager-0.003.tar.gz
-KALEX/Apache2-Imager-Resize-0.16.tar.gz
-KAWAMURAY/Imager-Heatmap-0.03.tar.gz
-KRYDE/Image-Base-Imager-11.tar.gz
-KURIHARA/Imager-Filter-Sepia-0.02.tar.gz
-KURIHARA/Imager-QRCode-0.034.tar.gz
-MSCHILLI/Video-Capture-V4l-Imager-0.01.tar.gz
-MZSANFORD/Imager-TimelineDiagram-0.15.tar.gz
-RSAVAGE/jQuery-File-Upload-Imager-1.01.tgz
-TADZIK/Imager-GIF-0.002.tar.gz
-TEEJAY/Imager/Chart/Imager-Chart-Radial-0.1.tar.gz
-TKREMER/Template-Plugin-Imager-0.01.tar.gz
-TOKUHIROM/Imager-Filter-FishEye-0.04.tar.gz
-TOMITA/Imager-Filter-Bakumatsu-0.03.tar.gz
-TONYC/Imager-0.97.tar.gz
-TONYC/Imager-File-GIF-0.88.tar.gz
-TONYC/Imager-File-JPEG-0.88.tar.gz
-TONYC/Imager-File-PNG-0.89.tar.gz
-TONYC/Imager-File-TIFF-0.88.tar.gz
-TONYC/Imager-Font-FT2-0.92.tar.gz
-TONYC/Imager-Font-T1-1.022.tar.gz
-TONYC/Imager-Font-W32-0.88.tar.gz
-TONYC/Imager-Graph-0.10.tar.gz
-TONYC/Imager-Screenshot-0.013.tar.gz
-TYPESTER/Imager-Filter-RoundedCorner-0.02.tar.gz
-VVELOX/Imager-AverageGray-0.0.0.tar.gz
-WKI/Catalyst-Controller-Imager-0.05.tar.gz
-WROSS/Apache-Imager-Resize-0.11.tar.gz
-YAPPO/Imager-ExifOrientation-0.07.tar.gz
+Wer auf Farbmanagement verzichten kann und auf bestimmte Dateiformate (z.B.
+EPS oder PDF) keinen Wert legt, hat mit Imager eine schnelle und vielseitige
+Bildverarbeitungs-Bibliothek, die ohne Zicken auch automatisiert installierbar
+ist und mit umfangreicher Dokumentation geliefert wird. Der Funktionsumfang
+ist ebenso überzeugend wie die zahlreiche zusätzlichen auf CPAN befindlichen
+auf Imager aufbauenden Distributionen.
